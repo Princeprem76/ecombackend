@@ -1,22 +1,37 @@
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from product.models import products
-from product.serializers import allProductView
-
-
-@api_view(['GET'])
-def allProductView(request):
-    product_data = products.objects.all()
-    serializer = allProductView(product_data, many=True)
-    return Response(serializer.data)
+from product.models import products, category
+from product.serializers import allProductName, allCategoryName
 
 
-@api_view(['GET'])
-def categoryProductView(request, pk):
-    product_data = products.objects.filter(product_category__category_name=pk)
-    serializer = allProductView(product_data, many=True)
-    return Response(serializer.data)
+class allProductView(APIView):
+    permission_classes = ()
+
+    def get(self, request, *args, **kwargs):
+        product_data = products.objects.all()
+        serializer = allProductName(product_data, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class categoryProductView(APIView):
+    permission_classes = ()
+
+    def post(self, request, *args, **kwargs):
+        product_data = products.objects.filter(product_category__category_name=kwargs['category'])
+        serializer = allProductName(product_data, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        categoryData = category.objects.all()
+        serializer = allCategoryName(categoryData, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+

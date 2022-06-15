@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import UserEmail, UserDetails
-from .serializers import UserhasDataSerial
+from .serializers import UserhasDataSerial, UserData
 from .utils import Util
 
 
@@ -196,7 +196,7 @@ class forgetpw(APIView):
             newpw = data['password']
             repw = data['repassword']
             if newpw == repw:
-                userdata = UserEmail.objects.get(id=kwargs['id'])
+                userdata = UserEmail.objects.get(email=kwargs['email'])
                 userdata.set_password(newpw)
                 userdata.save()
                 return Response({"message": "The password has been reset!", }, status=status.HTTP_200_OK, )
@@ -219,7 +219,7 @@ class signup(APIView):
             address = data['userAddress']
             gender = data['gender']
             UserDetails(Name=user, age=age, phone=contact, address=address, gender=gender,
-                        email_id=id).save()
+                        email_id=kwargs['id']).save()
             dat = UserEmail.objects.get(id=kwargs['id'])
             dat.has_data = True
             dat.save()
@@ -237,14 +237,22 @@ def logouts(request):
     return Response({"message": "Successfully Logged Out", }, status=status.HTTP_200_OK, )
 
 
-def details(request):
-    if request.method == 'POST':
+class details(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, *args, **kwargs):
         data = request.data
         try:
+            name = data['name']
+            image = request.FILES['image']
+            gender = data['gender']
             address = data['userAddress']
             age = data['UserAge']
             contact = data['UserContact']
             userData = UserDetails.objects.get(email__email=request.user)
+            userData.name = name
+            userData.gender = gender
+            userData.user_image = image
             userData.age = age
             userData.phone = contact
             userData.address = address
@@ -256,9 +264,16 @@ def details(request):
             },
                 status=status.HTTP_400_BAD_REQUEST, )
 
+    def get(self, request, *args, **kwargs):
+        userData = UserDetails.objects.get(email__email=request.user)
+        serial = UserData(userData, many=False)
+        return Response(serial.data, status=status.HTTP_200_OK)
 
-def changepass(request):
-    if request.method == 'POST':
+
+class changepass(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, *args, **kwargs):
         data = request.data
         try:
             oldpass = data['oldpassword']
@@ -272,7 +287,6 @@ def changepass(request):
                     userdata.save()
                     return Response({"message": "The password has been updated!", }, status=status.HTTP_200_OK, )
                 else:
-
                     return Response({
                         "message": "The password doesn't match",
                     },

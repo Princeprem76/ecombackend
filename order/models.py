@@ -42,10 +42,23 @@ class orders(models.Model):
 class location(models.Model):
     order = models.ForeignKey(orders, on_delete=models.SET_NULL,
                               null=True)
-    drop_location = models.CharField(max_length=150)
+    email = models.EmailField(null=True)
+    name = models.CharField(max_length=150)
+    phone = models.PositiveBigIntegerField()
+    drop_location = models.CharField(max_length=250)
 
     def __str__(self):
-        return str(self.order.id), str(self.order.order_by), self.drop_location
+        return str(self.drop_location)
+
+
+class coupon(models.Model):
+    coupon_number = models.CharField(max_length=8)
+    discount = models.PositiveSmallIntegerField()
+    generated_date = models.DateTimeField(auto_now=True)
+    is_Expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.coupon_number)
 
 
 class order_payment(models.Model):
@@ -53,7 +66,7 @@ class order_payment(models.Model):
     payment_by = models.PositiveBigIntegerField()
     amount = models.PositiveIntegerField()
     order_code = models.CharField(max_length=10)
-    payment_token = models.CharField(max_length=20)
+    payment_token = models.CharField(max_length=20, null=True)
     payment_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

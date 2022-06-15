@@ -18,7 +18,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from user.views import Login_User, Create_User, signup, forgetpw,activate,activatepw
+from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use
+from product.views import allProductView, categoryProductView
+from user.views import Login_User, Create_User, signup, forgetpw, activate, activatepw, logouts, details, changepass
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,7 +29,19 @@ urlpatterns = [
     path('api/v1/userdata/<int:id>/', signup.as_view(), name="userdata"),
     path('api/v1/forgetpw/<int:id>/', forgetpw.as_view(), name="forgetpassword"),
     path('api/v1/activate/<uidb64>/<token>/', activate, name='activate'),
-    path('api/v1/activatepw/<uidb64>/<token>/', activatepw, name='activatepw'),
+    path('api/v1/activatepw/<uidb64>/<token>/', activatepw, name='password reset'),
+    path('api/v1/product/', allProductView.as_view(), name="all product"),
+    path('api/v1/product/category/', categoryProductView.as_view(), name="category product"),
+    path('api/v1/logout/', logouts),
+    path('api/v1/userdetails/', details.as_view(), name="user details"),
+    path('api/v1/changepassword/', changepass.as_view(), name="change password"),
+    path('api/v1/forgetpassword/', forgetpw.as_view(), name="forget password"),
+    path('api/v1/cart/', cartItem.as_view(), name="Cart items"),
+    path('api/v1/removeitem/', remove_single_item_from_cart.as_view(), name="remove item"),
+    path('api/v1/wishitem/', wishItem.as_view(), name="wish item"),
+    path('api/v1/removewish/', remove_single_item_from_wishlist.as_view(), name= "remove wish"),
+    path('api/v1/coupon/', coupon_use.as_view(), name="coupon use"),
+
 
 ]
 
