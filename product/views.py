@@ -15,16 +15,21 @@ class allProductView(APIView):
     permission_classes = ()
 
     def get(self, request, *args, **kwargs):
-        product_data = products.objects.all()
-        serializer = allProductName(product_data, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            product_data = products.objects.all()
+            serializer = allProductName(product_data, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'message':'No item available'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class categoryProductView(APIView):
     permission_classes = ()
 
     def post(self, request, *args, **kwargs):
-        product_data = products.objects.filter(product_category__category_name=kwargs['category'])
+        data = request.data
+        category = data['category']
+        product_data = products.objects.filter(product_category__category_name=category)
         serializer = allProductName(product_data, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -24,7 +24,9 @@ class cartItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        item = get_object_or_404(products, id=kwargs['id'])
+        data = request.data
+        ids = data['id']
+        item = get_object_or_404(products, id=ids)
         ord, created = items.objects.get_or_create(items=item, user=request.user, current_order=True)
         order_qs = orders.objects.filter(order_by=request.user, delivered=False, orderended=False)
         if order_qs.exists():
@@ -54,7 +56,9 @@ class remove_single_item_from_cart(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        item = get_object_or_404(products, id=kwargs['id'])
+        data = request.data
+        ids = data['id']
+        item = get_object_or_404(products, id=ids)
         order_qs = orders.objects.filter(
             User=request.user,
             orderend=False,
@@ -85,7 +89,9 @@ class wishItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        item = get_object_or_404(products, id=kwargs['id'])
+        data = request.data
+        ids = data['id']
+        item = get_object_or_404(products, id=ids)
         ord, created = wishlist.objects.get_or_create(product=item, user__email=request.user)
         order_qs = wishlist.objects.get(user__email=request.user)
         if order_qs.exists():
@@ -114,7 +120,9 @@ class remove_single_item_from_wishlist(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        item = get_object_or_404(products, id=kwargs['id'])
+        data = request.data
+        ids = data['id']
+        item = get_object_or_404(products, id=ids)
         order_qs = wishlist.objects.get(
             user__email=request.user,
         )
