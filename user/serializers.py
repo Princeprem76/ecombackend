@@ -10,7 +10,14 @@ class UserhasDataSerial(serializers.ModelSerializer):
         model = UserEmail
         fields = ['is_verified', 'has_data', 'is_user']
 
+
 class UserData(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = '__all__'
+
+
+class UserProfile(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        fields = ['name', 'user_image']
