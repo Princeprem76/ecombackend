@@ -33,7 +33,7 @@ class products(models.Model):
         return self.product_name
 
     def get_discounted_price(self):
-        price = self.product_price - (self.product_discount*0.01)
+        price = self.product_price - (self.product_discount*0.01*self.product_price)
         return price
 
 class wishlist(models.Model):
