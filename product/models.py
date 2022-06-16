@@ -29,7 +29,7 @@ class products(models.Model):
     product_category = models.ForeignKey(category, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.product_name, self.product_price, self.product_discount
+        return self.product_name
 
     def get_discounted_price(self):
         price = self.product_price - (self.product_discount*0.01)
