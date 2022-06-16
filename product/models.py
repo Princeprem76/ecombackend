@@ -27,6 +27,7 @@ class products(models.Model):
     product_price = models.PositiveIntegerField()
     product_discount = models.PositiveIntegerField(default=0)
     product_category = models.ForeignKey(category, on_delete=models.CASCADE)
+    is_top_selling = models.BooleanField(default=False)
 
     def __str__(self):
         return self.product_name
