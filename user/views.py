@@ -122,18 +122,30 @@ class Login_User(APIView):
                 login(request, user)
                 userdetails = UserEmail.objects.get(email=email)
                 serializer = UserhasDataSerial(userdetails, many=False)
-                userprofile = UserDetails.objects.get(email__email=request.user)
-                ser = UserProfile(userprofile, many=False)
-                if not userdetails.is_verified:
-                    reverify(request, userdetails, email)
-                response = {
-                    "user_id": userdetails.id,
-                    "user_proifle": ser.data,
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                    "user_data": serializer.data,
-                }
-                return Response(response, status=status.HTTP_200_OK)
+                try:
+                    userprofile = UserDetails.objects.get(email__email=request.user)
+                    ser = UserProfile(userprofile, many=False)
+                    if not userdetails.is_verified:
+                        reverify(request, userdetails, email)
+                    response = {
+                        "user_id": userdetails.id,
+                        "user_proifle": ser.data,
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "user_data": serializer.data,
+                    }
+                    return Response(response, status=status.HTTP_200_OK)
+                except:
+                    if not userdetails.is_verified:
+                        reverify(request, userdetails, email)
+                    response = {
+                        "user_id": userdetails.id,
+                        "user_profile": [],
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "user_data": serializer.data,
+                    }
+                    return Response(response, status=status.HTTP_200_OK)
             else:
                 return Response({
                     "message": "Email or password doesn't match!",
