@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 
 from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use
-from product.views import allProductView, categoryProductView
+from product.views import allProductView, categoryProductView, singleProductView
 from user.views import Login_User, Create_User, signup, forgetpw, activate, activatepw, logouts, details, changepass
 
 urlpatterns = [
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/v1/wishitem/', wishItem.as_view(), name="wish item"),
     path('api/v1/removewish/', remove_single_item_from_wishlist.as_view(), name= "remove wish"),
     path('api/v1/coupon/', coupon_use.as_view(), name="coupon use"),
+    path('api/v1/unique/product/', singleProductView.as_view(), name="Single Product"),
 
 
 ]

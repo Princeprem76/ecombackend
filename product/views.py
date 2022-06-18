@@ -38,5 +38,17 @@ class categoryProductView(APIView):
         serializer = allCategoryName(categoryData, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class singleProductView(APIView):
+    permission_classes = ()
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            ids = data['id']
+            product_data = products.objects.get(id=ids)
+            serializer = allProductName(product_data, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'message':'no data found!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
