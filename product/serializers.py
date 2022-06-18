@@ -3,13 +3,6 @@ from rest_framework import serializers
 from product.models import products, category, subcategory
 
 
-class allProductName(serializers.ModelSerializer):
-    class Meta:
-        model = products
-        fields = ['id', 'product_name', 'product_image', 'product_price', 'product_category', 'get_discounted_price',
-                  'product_discount', 'is_top_selling']
-
-
 class subCategoryName(serializers.ModelSerializer):
     class Meta:
         model = subcategory
@@ -22,3 +15,12 @@ class allCategoryName(serializers.ModelSerializer):
     class Meta:
         model = category
         fields = ['id', 'category_name', 'sub_category']
+
+
+class allProductName(serializers.ModelSerializer):
+    product_category = allCategoryName
+
+    class Meta:
+        model = products
+        fields = ['id', 'product_name', 'product_image', 'product_price', 'product_category', 'get_discounted_price',
+                  'product_discount', 'is_top_selling']
