@@ -6,10 +6,11 @@ from product.models import products, category, subcategory
 class subCategoryName(serializers.ModelSerializer):
     class Meta:
         model = subcategory
-        fields = ['sub_category_name']
+        fields = '__all__'
 
 
 class allCategoryName(serializers.ModelSerializer):
+    sub_category = subCategoryName(read_only=True, many=True)
     class Meta:
         model = category
         fields = ['id', 'category_name', 'sub_category']
