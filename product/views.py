@@ -43,8 +43,7 @@ class singleProductView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            data = request.data
-            ids = data['id']
+            ids= request.query_params.get('id')
             product_data = products.objects.get(id=ids)
             serializer = allProductName(product_data, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
