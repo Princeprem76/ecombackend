@@ -10,7 +10,7 @@ class items(models.Model):
                              null=True, )
     item = models.ForeignKey(products, on_delete=models.SET_NULL,
                              null=True, )
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(default=1)
     current_order = models.BooleanField(default=False)
 
     def __str__(self):
@@ -25,7 +25,7 @@ class orders(models.Model):
     order_by = models.ForeignKey(UserEmail, on_delete=models.SET_NULL,
                                  null=True)
     item = models.ManyToManyField(items)
-    order_date = models.DateField()
+    order_date = models.DateField(null=True)
     order_end = models.BooleanField(default=False)
     delivered = models.BooleanField(default=False)
 

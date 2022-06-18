@@ -24,22 +24,22 @@ class cartItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
-        ids = data['id']
+        ids = request.query_params.get('id')
+        quant = request.query_params.get('quantity')
         item = get_object_or_404(products, id=ids)
-        ord, created = items.objects.get_or_create(items=item, user=request.user, current_order=True)
-        order_qs = orders.objects.filter(order_by=request.user, delivered=False, orderended=False)
+        ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant)
+        order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
         if order_qs.exists():
             order = order_qs[0]
-            if order.items.filter(items=item).exists():
+            if order.item.filter(item=item).exists():
                 ord.quantity += 1
                 ord.save()
             else:
-                order.items.add(ord)
+                order.item.add(ord)
             return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
         else:
-            order = orders.objects.create(User=request.user)
-            order.items.add(ord)
+            order = orders.objects.create(order_by=request.user)
+            order.item.add(ord)
             return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
 
     def get(self, request, *args, **kwargs):
