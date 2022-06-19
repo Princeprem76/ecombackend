@@ -30,21 +30,25 @@ class cartItem(GenericAPIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant,
-                                                       item_size=size, item_color=color)
-            order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
-            if order_qs.exists():
-                order = order_qs[0]
-                if order.item.filter(item=item).exists():
-                    ord.quantity += 1
-                    ord.save()
-                else:
-                    order.item.add(ord)
-                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+            if item.product_quantity < quant or item.product_quantity == 0:
+                return Response({'message': "The product is out of stock!"}, status=status.HTTP_406_NOT_ACCEPTABLE)
             else:
-                order = orders.objects.create(order_by=request.user)
-                order.item.add(ord)
-                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+                ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True,
+                                                           quantity=quant,
+                                                           item_size=size, item_color=color)
+                order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
+                if order_qs.exists():
+                    order = order_qs[0]
+                    if order.item.filter(item=item).exists():
+                        ord.quantity += 1
+                        ord.save()
+                    else:
+                        order.item.add(ord)
+                    return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+                else:
+                    order = orders.objects.create(order_by=request.user)
+                    order.item.add(ord)
+                    return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
         except:
             return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -53,7 +57,6 @@ class cartItem(GenericAPIView):
             form = orders.objects.get(order_by__email=request.user, delivered=False, order_end=False)
             serial = orderserial(form, many=False)
             return Response(serial.data, status=status.HTTP_200_OK)
-
         except:
             return Response({'message': 'No item added to cart!'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,9 +65,8 @@ class remove_single_item_from_cart(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
         try:
-            ids = data['id']
+            ids = request.query_params.get('id')
             item = get_object_or_404(products, id=ids)
             order_qs = orders.objects.filter(
                 User=request.user,
@@ -98,9 +100,8 @@ class wishItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
         try:
-            ids = data['id']
+            ids = request.query_params.get('id')
             item = get_object_or_404(products, id=ids)
             ord, created = wishlist.objects.get_or_create(product=item, user__email=request.user)
             order_qs = wishlist.objects.get(user__email=request.user)
@@ -132,9 +133,8 @@ class remove_single_item_from_wishlist(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
         try:
-            ids = data['id']
+            ids = request.query_params.get('id')
             item = get_object_or_404(products, id=ids)
             order_qs = wishlist.objects.get(
                 user__email=request.user,
