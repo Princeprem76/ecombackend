@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None):
+    def create_user(self, email, name, user_image=None, gender=None, address=None, phone=None, password=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -15,6 +15,11 @@ class UserManager(BaseUserManager):
         )
         user.set_password(password)
         user.is_user = True
+        user.user_image = user_image
+        user.name = name
+        user.phone = phone
+        user.gender = gender
+        user.address = address
         user.save(using=self._db)
         return user
 
@@ -43,13 +48,18 @@ class UserManager(BaseUserManager):
 
 
 class UserEmail(AbstractBaseUser, PermissionsMixin):
+    selections = [('Male', 'Male'), ('Female', 'Female'), ('Others', 'Others')]
     email = models.EmailField(_('Email Address'), unique=True)
+    name = models.CharField('Name', max_length=150, null=True)
+    user_image = models.ImageField(default='user_image/user.jpg', upload_to='user_image/', blank=True)
+    phone = models.PositiveBigIntegerField('Phone Number', unique=True, null=True)
+    gender = models.CharField('Gender', max_length=20, choices=selections, default='Male')
+    address = models.CharField('Address', max_length=80, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_user = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
-    has_data = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -75,16 +85,14 @@ class UserEmail(AbstractBaseUser, PermissionsMixin):
         "Is the user a admin member?"
         return self.is_admin
 
+    def get_gender(self):
+        if not self.gender:
+            return 'Male'
+        else:
+            return self.gender
 
-class UserDetails(models.Model):
-    selections = [('Male', 'Male'), ('Female', 'Female'), ('Others', 'Others')]
-    name = models.CharField('Name', max_length=150)
-    user_image = models.ImageField(upload_to='user_image/', default='user.png')
-    age = models.PositiveSmallIntegerField('Age')
-    phone = models.PositiveBigIntegerField('Phone Number', unique=True)
-    gender = models.CharField('Gender', max_length=20, choices=selections)
-    address = models.CharField('Address', max_length=80)
-    email = models.ForeignKey(UserEmail, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.email.email
+    def get_image(self):
+        if not self.user_image:
+            return '/media/user_image/user.jpg'
+        else:
+            return self.user_image

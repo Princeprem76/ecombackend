@@ -20,13 +20,13 @@ from django.urls import path
 
 from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use
 from product.views import allProductView, categoryProductView, singleProductView
-from user.views import Login_User, Create_User, signup, forgetpw, activate, activatepw, logouts, details, changepass
+from user.views import Login_User, Create_User, forgetpw, activate, activatepw, logouts, details, changepass
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/login/', Login_User.as_view(), name="login"),
     path('api/v1/Register/', Create_User.as_view(), name="register"),
-    path('api/v1/userdata/<int:id>/', signup.as_view(), name="userdata"),
+    # path('api/v1/userdata/<int:id>/', signup.as_view(), name="userdata"),
     path('api/v1/forgetpw/<int:id>/', forgetpw.as_view(), name="forgetpassword"),
     path('api/v1/activate/<uidb64>/<token>/', activate, name='activate'),
     path('api/v1/activatepw/<uidb64>/<token>/', activatepw, name='password reset'),

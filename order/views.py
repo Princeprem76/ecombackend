@@ -24,26 +24,29 @@ class cartItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        ids = request.query_params.get('id')
-        quant = request.query_params.get('quantity')
-        size = request.query_params.get('size')
-        color = request.query_params.get('color')
-        item = get_object_or_404(products, id=ids)
-        ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant,
-                                                   item_size=size, item_color=color)
-        order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
-        if order_qs.exists():
-            order = order_qs[0]
-            if order.item.filter(item=item).exists():
-                ord.quantity += 1
-                ord.save()
+        try:
+            ids = request.query_params.get('id')
+            quant = request.query_params.get('quantity')
+            size = request.query_params.get('size')
+            color = request.query_params.get('color')
+            item = get_object_or_404(products, id=ids)
+            ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant,
+                                                       item_size=size, item_color=color)
+            order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.item.filter(item=item).exists():
+                    ord.quantity += 1
+                    ord.save()
+                else:
+                    order.item.add(ord)
+                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
             else:
+                order = orders.objects.create(order_by=request.user)
                 order.item.add(ord)
-            return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
-        else:
-            order = orders.objects.create(order_by=request.user)
-            order.item.add(ord)
-            return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
@@ -60,32 +63,35 @@ class remove_single_item_from_cart(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        ids = data['id']
-        item = get_object_or_404(products, id=ids)
-        order_qs = orders.objects.filter(
-            User=request.user,
-            orderend=False,
-            delivered=False
-        )
-        if order_qs.exists():
-            order = order_qs[0]
-            if order.item.filter(items=item).exists():
-                order_item = items.objects.filter(
-                    items=item,
-                    User=request.user,
+        try:
+            ids = data['id']
+            item = get_object_or_404(products, id=ids)
+            order_qs = orders.objects.filter(
+                User=request.user,
+                orderend=False,
+                delivered=False
+            )
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.item.filter(items=item).exists():
+                    order_item = items.objects.filter(
+                        items=item,
+                        User=request.user,
 
-                )[0]
-                if order_item.quantity > 1:
-                    order_item.quantity -= 1
-                    order_item.save()
+                    )[0]
+                    if order_item.quantity > 1:
+                        order_item.quantity -= 1
+                        order_item.save()
+                    else:
+                        order.item.remove(order_item)
+
+                    return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
                 else:
-                    order.item.remove(order_item)
-
-                return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
+                    return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'You do not have an active order'}, status=status.HTTP_204_NO_CONTENT)
+                return Response({'message': 'You do not have an active order'}, status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class wishItem(GenericAPIView):
@@ -93,22 +99,25 @@ class wishItem(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        ids = data['id']
-        item = get_object_or_404(products, id=ids)
-        ord, created = wishlist.objects.get_or_create(product=item, user__email=request.user)
-        order_qs = wishlist.objects.get(user__email=request.user)
-        if order_qs.exists():
-            order = order_qs[0]
-            if order.items.filter(product=item).exists():
-                return Response({'message': "Product already added to wishlist"},
-                                status=status.HTTP_208_ALREADY_REPORTED)
+        try:
+            ids = data['id']
+            item = get_object_or_404(products, id=ids)
+            ord, created = wishlist.objects.get_or_create(product=item, user__email=request.user)
+            order_qs = wishlist.objects.get(user__email=request.user)
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.items.filter(product=item).exists():
+                    return Response({'message': "Product already added to wishlist"},
+                                    status=status.HTTP_208_ALREADY_REPORTED)
+                else:
+                    order.items.add(ord)
+                    return Response({'message': "Product added to wishlist"}, status=status.HTTP_202_ACCEPTED)
             else:
+                order = wishlist.objects.create(user__email=request.user)
                 order.items.add(ord)
                 return Response({'message': "Product added to wishlist"}, status=status.HTTP_202_ACCEPTED)
-        else:
-            order = wishlist.objects.create(user__email=request.user)
-            order.items.add(ord)
-            return Response({'message': "Product added to wishlist"}, status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
@@ -124,26 +133,29 @@ class remove_single_item_from_wishlist(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        ids = data['id']
-        item = get_object_or_404(products, id=ids)
-        order_qs = wishlist.objects.get(
-            user__email=request.user,
-        )
-        if order_qs.exists():
-            order = order_qs[0]
-            if order.item.filter(product=item).exists():
-                order_item = items.objects.filter(
-                    items=item,
-                    user__email=request.user,
+        try:
+            ids = data['id']
+            item = get_object_or_404(products, id=ids)
+            order_qs = wishlist.objects.get(
+                user__email=request.user,
+            )
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.item.filter(product=item).exists():
+                    order_item = items.objects.filter(
+                        items=item,
+                        user__email=request.user,
 
-                )[0]
-                order.item.remove(order_item)
+                    )[0]
+                    order.item.remove(order_item)
 
-                return Response({'message': 'The wishlist is updated!'}, status=status.HTTP_200_OK)
+                    return Response({'message': 'The wishlist is updated!'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'You do not have an active wishlist'}, status=status.HTTP_204_NO_CONTENT)
+                return Response({'message': 'You do not have an active wishlist'}, status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class coupon_use(APIView):

@@ -9,12 +9,13 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode
 from django.utils.http import urlsafe_base64_encode
 from rest_framework import status
+from rest_framework.fields import empty
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import UserEmail, UserDetails
-from .serializers import UserhasDataSerial, UserData, UserProfile
+from .models import UserEmail
+from .serializers import UserhasDataSerial, UserProfile, UserData
 from .utils import Util
 
 
@@ -77,10 +78,31 @@ class Create_User(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        address = data['address']
+        name = data['name']
+        user_image = request.FILES.get('image', False)
+        phone = request.data['phone']
+        gender = request.data['gender']
+
         try:
+            if data['name'] == '':
+                name = None
+            if data['address'] == '':
+                address = None
+            if data['phone'] == '':
+                phone = None
+            if data['gender'] == '':
+                gender = ''
+            if request.FILES.get('image', False) is False:
+                user_image = ''
             userSign = UserEmail.objects.create_user(
                 email=data['email'],
                 password=data['password'],
+                address=address,
+                name=name,
+                user_image=user_image,
+                phone=phone,
+                gender=gender
             )
             current_site = get_current_site(request)
             mail_subject = 'Activate your account.'
@@ -122,34 +144,23 @@ class Login_User(APIView):
                 login(request, user)
                 userdetails = UserEmail.objects.get(email=email)
                 serializer = UserhasDataSerial(userdetails, many=False)
-                try:
-                    userprofile = UserDetails.objects.get(email__email=request.user)
-                    ser = UserProfile(userprofile, many=False)
-                    if not userdetails.is_verified:
-                        reverify(request, userdetails, email)
-                    response = {
-                        "user_id": userdetails.id,
-                        "user_proifle": ser.data,
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                        "user_data": serializer.data,
-                    }
-                    return Response(response, status=status.HTTP_200_OK)
-                except:
-                    if not userdetails.is_verified:
-                        reverify(request, userdetails, email)
-                    response = {
-                        "user_id": userdetails.id,
-                        "user_profile": [],
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                        "user_data": serializer.data,
-                    }
-                    return Response(response, status=status.HTTP_200_OK)
+
+                ser = UserProfile(userdetails, many=False)
+                if not userdetails.is_verified:
+                    reverify(request, userdetails, email)
+                response = {
+                    "user_proifle": ser.data,
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "user_data": serializer.data,
+                }
+                return Response(response, status=status.HTTP_200_OK)
+
             else:
                 return Response({
                     "message": "Email or password doesn't match!",
                 }, status=status.HTTP_400_BAD_REQUEST)
+
         except UserEmail.DoesNotExist:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -177,7 +188,7 @@ class emailpass(APIView):
             messages.success(request, "")
             return Response({"message": "Check your email for password reset link", }, status=status.HTTP_200_OK, )
         except:
-            return HttpResponse('error')
+            return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def reverify(request, signupdata, emails):
@@ -215,6 +226,8 @@ class forgetpw(APIView):
                 userdata.set_password(newpw)
                 userdata.save()
                 return Response({"message": "The password has been reset!", }, status=status.HTTP_200_OK, )
+            else:
+                return Response({"message": "Password does not match", }, status=status.HTTP_406_NOT_ACCEPTABLE, )
         except:
             return Response({
                 "message": "Error!",
@@ -222,30 +235,30 @@ class forgetpw(APIView):
                 status=status.HTTP_400_BAD_REQUEST, )
 
 
-class signup(APIView):
-    permission_classes = ()
-
-    def post(self, request, *args, **kwargs):
-        data = request.data
-        try:
-            user = data['UserName']
-            age = data['UserAge']
-            contact = data['UserContact']
-            address = data['userAddress']
-            gender = data['gender']
-            UserDetails(Name=user, age=age, phone=contact, address=address, gender=gender,
-                        email_id=kwargs['id']).save()
-            dat = UserEmail.objects.get(id=kwargs['id'])
-            dat.has_data = True
-            dat.save()
-            return Response({"message": "The Signup process is completed. Please Login!", },
-                            status=status.HTTP_200_OK, )
-        except:
-            return Response({
-                "message": "Error!",
-            },
-                status=status.HTTP_400_BAD_REQUEST, )
-
+# class signup(APIView):
+#     permission_classes = ()
+#
+#     def post(self, request, *args, **kwargs):
+#         data = request.data
+#         try:
+#             user = data['UserName']
+#             age = data['UserAge']
+#             contact = data['UserContact']
+#             address = data['userAddress']
+#             gender = data['gender']
+#             UserDetails(Name=user, age=age, phone=contact, address=address, gender=gender,
+#                         email_id=kwargs['id']).save()
+#             dat = UserEmail.objects.get(id=kwargs['id'])
+#             dat.has_data = True
+#             dat.save()
+#             return Response({"message": "The Signup process is completed. Please Login!", },
+#                             status=status.HTTP_200_OK, )
+#         except:
+#             return Response({
+#                 "message": "Error!",
+#             },
+#                 status=status.HTTP_400_BAD_REQUEST, )
+#
 
 def logouts(request):
     logout(request)
@@ -264,11 +277,10 @@ class details(APIView):
             address = data['userAddress']
             age = data['UserAge']
             contact = data['UserContact']
-            userData = UserDetails.objects.get(email__email=request.user)
+            userData = UserEmail.objects.get(email=request.user)
             userData.name = name
             userData.gender = gender
             userData.user_image = image
-            userData.age = age
             userData.phone = contact
             userData.address = address
             userData.save()
@@ -280,7 +292,7 @@ class details(APIView):
                 status=status.HTTP_400_BAD_REQUEST, )
 
     def get(self, request, *args, **kwargs):
-        userData = UserDetails.objects.get(email__email=request.user)
+        userData = UserEmail.objects.get(email=request.user)
         serial = UserData(userData, many=False)
         return Response(serial.data, status=status.HTTP_200_OK)
 

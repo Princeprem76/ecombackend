@@ -28,15 +28,22 @@ class categoryProductView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        category = data['category']
-        product_data = products.objects.filter(product_category__category_name=category)
-        serializer = allProductName(product_data, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            category = data['category']
+            product_data = products.objects.filter(product_category__category_name=category)
+            serializer = allProductName(product_data, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'Category not found!'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
-        categoryData = category.objects.all()
-        serializer = allCategoryName(categoryData, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            categoryData = category.objects.all()
+            serializer = allCategoryName(categoryData, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'No category present!'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class singleProductView(APIView):
     permission_classes = ()
