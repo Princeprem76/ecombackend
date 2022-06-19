@@ -23,12 +23,28 @@ class productImage(models.Model):
     product_image = models.ImageField(upload_to='product/')
 
 
+class productSize(models.Model):
+    product_size = models.CharField(max_length=150)
+
+    def __str__(self):
+        return self.product_size
+
+class productColor(models.Model):
+    color = [('Red', 'Red'), ('Blue', 'Blue'), ('Black', 'Black'), ('Grey', 'Grey'), ('White', 'White'),
+             ('Yellow', 'Yellow')]
+    product_color = models.CharField(max_length=150, choices=color)
+
+    def __str__(self):
+        return self.product_color
 
 
 class products(models.Model):
     product_name = models.CharField(max_length=150)
     product_image = models.ManyToManyField(productImage)
     product_quantity = models.PositiveIntegerField()
+    product_description = models.TextField(null=True)
+    product_size = models.ManyToManyField(productSize)
+    product_color = models.ManyToManyField(productColor)
     product_price = models.PositiveIntegerField()
     product_discount = models.PositiveIntegerField(default=0)
     product_category = models.ForeignKey(category, on_delete=models.CASCADE)
