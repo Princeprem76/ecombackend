@@ -30,27 +30,34 @@ class cartItem(GenericAPIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            if item.product_quantity < quant or item.product_quantity == 0:
-                return Response({'message': "The product is out of stock!"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-            else:
-                ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True,
-                                                           quantity=quant,
-                                                           item_size=size, item_color=color)
-                order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
-                if order_qs.exists():
-                    order = order_qs[0]
-                    if order.item.filter(item=item).exists():
-                        ord.quantity += 1
-                        ord.save()
-                    else:
-                        order.item.add(ord)
-                    return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+            ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True)
+            order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
+            if order_qs.exists():
+                order = order_qs[0]
+                if order.item.filter(item=item).exists():
+                    ord.item_color = color
+                    ord.item_size = size
+                    ord.quantity += int(quant)
+                    ord.save()
                 else:
-                    order = orders.objects.create(order_by=request.user)
+                    ord.item_color = color
+                    ord.item_size = size
+                    ord.quantity = int(quant)
+                    ord.save()
                     order.item.add(ord)
-                    return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+            else:
+                order = orders.objects.create(order_by=request.user)
+                ord.item_color = color
+                ord.item_size = size
+                ord.quantity = int(quant)
+                ord.save()
+                order.item.add(ord)
+                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+
         except:
             return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
+
 
     def get(self, request, *args, **kwargs):
         try:

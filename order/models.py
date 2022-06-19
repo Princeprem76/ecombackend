@@ -30,8 +30,8 @@ class orders(models.Model):
     order_end = models.BooleanField(default=False)
     delivered = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.order_by.email
+    # def __str__(self):
+    #     return self.order_by.email
 
     def get_total(self):
         totals = 0
