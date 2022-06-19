@@ -26,8 +26,11 @@ class cartItem(GenericAPIView):
     def post(self, request, *args, **kwargs):
         ids = request.query_params.get('id')
         quant = request.query_params.get('quantity')
+        size = request.query_params.get('size')
+        color = request.query_params.get('color')
         item = get_object_or_404(products, id=ids)
-        ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant)
+        ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True, quantity=quant,
+                                                   item_size=size, item_color=color)
         order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
         if order_qs.exists():
             order = order_qs[0]
