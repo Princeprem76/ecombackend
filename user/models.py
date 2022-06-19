@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, user_image=None, gender=None, address=None, phone=None, password=None):
+    def create_user(self, email, name=None, user_image=None, gender=None, address=None, phone=None, password=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -53,7 +53,7 @@ class UserEmail(AbstractBaseUser, PermissionsMixin):
     name = models.CharField('Name', max_length=150, null=True)
     user_image = models.ImageField(default='user_image/user.jpg', upload_to='user_image/', blank=True)
     phone = models.PositiveBigIntegerField('Phone Number', unique=True, null=True)
-    gender = models.CharField('Gender', max_length=20, choices=selections, default='Male')
+    gender = models.CharField('Gender', max_length=20, choices=selections, default='Male', null=True)
     address = models.CharField('Address', max_length=80, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
