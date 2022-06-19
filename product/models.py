@@ -62,9 +62,13 @@ class products(models.Model):
         return cou
 
 
+class wishitem(models.Model):
+    item = models.ForeignKey(products, on_delete=models.CASCADE)
+
+
 class wishlist(models.Model):
     user = models.ForeignKey(UserEmail, on_delete=models.CASCADE)
-    product = models.ManyToManyField(products)
+    product = models.ManyToManyField(wishitem)
 
     def __str__(self):
         return self.user.email

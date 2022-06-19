@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from order.models import items, orders, coupon
 from order.serializers import orderserial, wishSerial
-from product.models import products, wishlist
+from product.models import products, wishlist, wishitem
 from user.models import UserEmail
 
 
@@ -110,27 +110,27 @@ class wishItem(GenericAPIView):
         try:
             ids = request.query_params.get('id')
             item = get_object_or_404(products, id=ids)
-            ord, created = wishlist.objects.get_or_create(product=item, user__email=request.user)
-            order_qs = wishlist.objects.get(user__email=request.user)
+            ord, created = wishitem.objects.get_or_create(item=item)
+            order_qs = wishlist.objects.filter(user=request.user)
             if order_qs.exists():
                 order = order_qs[0]
-                if order.items.filter(product=item).exists():
+                if order.product.filter(item=item).exists():
                     return Response({'message': "Product already added to wishlist"},
                                     status=status.HTTP_208_ALREADY_REPORTED)
                 else:
-                    order.items.add(ord)
+                    order.product.add(ord)
                     return Response({'message': "Product added to wishlist"}, status=status.HTTP_202_ACCEPTED)
             else:
-                order = wishlist.objects.create(user__email=request.user)
-                order.items.add(ord)
+                order = wishlist.objects.create(user=request.user)
+                order.product.add(ord)
                 return Response({'message': "Product added to wishlist"}, status=status.HTTP_202_ACCEPTED)
         except:
             return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
-            form = wishlist.objects.get(user__email=request.user)
-            serial = wishSerial(form, many=False)
+            form = wishlist.objects.filter(user=request.user)
+            serial = wishSerial(form, many=True)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'No item in wish list!'}, status=status.HTTP_400_BAD_REQUEST)

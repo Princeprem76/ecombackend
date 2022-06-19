@@ -7,6 +7,7 @@ from product.serializers import allProductName
 
 class itemSerial(serializers.ModelSerializer):
     item = allProductName()
+
     class Meta:
         model = items
         fields = '__all__'
@@ -21,6 +22,8 @@ class orderserial(serializers.ModelSerializer):
 
 
 class wishSerial(serializers.ModelSerializer):
+    product = itemSerial(read_only=True, many=True)
+
     class Meta:
-        model: wishlist
+        model = wishlist
         fields = '__all__'
