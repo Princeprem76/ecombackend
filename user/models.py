@@ -79,7 +79,7 @@ class UserEmail(AbstractBaseUser, PermissionsMixin):
 class UserDetails(models.Model):
     selections = [('Male', 'Male'), ('Female', 'Female'), ('Others', 'Others')]
     name = models.CharField('Name', max_length=150)
-    user_image = models.ImageField(upload_to='user_image/')
+    user_image = models.ImageField(upload_to='user_image/', default='user.png')
     age = models.PositiveSmallIntegerField('Age')
     phone = models.PositiveBigIntegerField('Phone Number', unique=True)
     gender = models.CharField('Gender', max_length=20, choices=selections)
