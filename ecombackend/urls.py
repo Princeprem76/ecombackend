@@ -18,7 +18,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use
+from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use, \
+    remove_whole_item_from_cart, Checkout, dropLocation
 from product.views import allProductView, categoryProductView, singleProductView
 from user.views import Login_User, Create_User, forgetpw, activate, activatepw, logouts, details, changepass
 
@@ -42,8 +43,9 @@ urlpatterns = [
     path('api/v1/removewish/', remove_single_item_from_wishlist.as_view(), name= "remove wish"),
     path('api/v1/coupon/', coupon_use.as_view(), name="coupon use"),
     path('api/v1/unique/product/', singleProductView.as_view(), name="Single Product"),
-
-
+    path('api/v1/removeall/', remove_whole_item_from_cart.as_view(), name="Remove Product"),
+    path('api/v1/location/', dropLocation.as_view(), name="Drop Location"),
+    path('api/v1/checkout/', Checkout.as_view(), name="Check Out")
 ]
 
 if settings.DEBUG:

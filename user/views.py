@@ -101,7 +101,7 @@ class Create_User(APIView):
                 address=address,
                 name=name,
                 user_image=user_image,
-                phone=phone,
+                phone=int(phone),
                 gender=gender
             )
             current_site = get_current_site(request)
@@ -272,11 +272,10 @@ class details(APIView):
         data = request.data
         try:
             name = data['name']
-            image = request.FILES['image']
+            image = request.FILES.get('image')
             gender = data['gender']
-            address = data['userAddress']
-            age = data['UserAge']
-            contact = data['UserContact']
+            address = data['address']
+            contact = data['phone']
             userData = UserEmail.objects.get(email=request.user)
             userData.name = name
             userData.gender = gender
