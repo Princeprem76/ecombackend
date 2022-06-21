@@ -20,7 +20,7 @@ class allProductView(APIView):
             serializer = allProductName(product_data, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except:
-            return Response({'message':'No item available'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': 'No item available'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class categoryProductView(APIView):
@@ -50,11 +50,24 @@ class singleProductView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            ids= request.query_params.get('id')
+            ids = request.query_params.get('id')
             product_data = products.objects.get(id=ids)
             serializer = allProductName(product_data, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except:
-            return Response({'message':'no data found!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'no data found!'}, status=status.HTTP_204_NO_CONTENT)
 
 
+class searchProduct(APIView):
+    permission_classes = ()
+
+    def post(self, request, *args, **kwargs):
+        searched = request.query_params.get('search')
+        try:
+            qs = products.objects.filter(product_name__icontains=searched)
+            qs = qs | products.objects.filter(product_category__category_name__icontains=searched)
+            qs = (qs | products.objects.filter(product_category__sub_category__sub_category_name__icontains=searched)).distinct()
+            serializer = allProductName(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'No item found!'}, status=status.HTTP_204_NO_CONTENT)
