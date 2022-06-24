@@ -36,7 +36,7 @@ class cartItem(GenericAPIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user, current_order=True)
+            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user)
             order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
             if order_qs.exists():
                 order = order_qs[0]
@@ -73,8 +73,10 @@ class remove_single_item_from_cart(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        # try:
+        try:
             ids = request.query_params.get('id')
+            size = request.query_params.get('size')
+            color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
             order_qs = orders.objects.filter(
                 order_by=request.user,
@@ -83,7 +85,7 @@ class remove_single_item_from_cart(APIView):
             )
             if order_qs.exists():
                 order = order_qs[0]
-                if order.item.filter(item=item).exists():
+                if order.item.filter(item=item, item_size=size, item_color=color).exists():
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
@@ -100,8 +102,8 @@ class remove_single_item_from_cart(APIView):
                     return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'message': 'You do not have an active order'}, status=status.HTTP_204_NO_CONTENT)
-        # except:
-        #     return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class remove_whole_item_from_cart(APIView):
@@ -110,6 +112,8 @@ class remove_whole_item_from_cart(APIView):
     def post(self, request, *args, **kwargs):
         try:
             ids = request.query_params.get('id')
+            size = request.query_params.get('size')
+            color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
             order_qs = orders.objects.filter(
                 order_by=request.user,
@@ -118,7 +122,7 @@ class remove_whole_item_from_cart(APIView):
             )
             if order_qs.exists():
                 order = order_qs[0]
-                if order.item.filter(item=item).exists():
+                if order.item.filter(item=item, item_size=size, item_color=color).exists():
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
@@ -265,7 +269,10 @@ class Checkout(APIView):
             order_qs = orders.objects.get(order_by=request.user, delivered=False, order_end=False)
             order_qs.order_end = True
             order_qs.order_date = date.today()
+            # for i in order_qs.item:
+
             order_qs.save()
+
             return Response({'message': 'Payment Done'}, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
