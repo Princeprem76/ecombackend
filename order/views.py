@@ -30,28 +30,24 @@ class cartItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        try:
+        # try:
             ids = request.query_params.get('id')
             quant = request.query_params.get('quantity')
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            ord, created = items.objects.get_or_create(item=item, user=request.user, current_order=True)
+            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user, current_order=True)
             order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
             if order_qs.exists():
                 order = order_qs[0]
-                if order.item.filter(item=item).exists():
-                    ord.item_color = color
-                    ord.item_size = size
+                if order.item.filter(item=item, item_size=size, item_color=color).exists():
                     ord.quantity += int(quant)
                     ord.save()
                 else:
-                    ord.item_color = color
-                    ord.item_size = size
                     ord.quantity = int(quant)
                     ord.save()
                     order.item.add(ord)
-                return Response({'message': "The item is added to cart", "list": ord}, status=status.HTTP_202_ACCEPTED)
+                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
             else:
                 code = refercode()
                 order = orders.objects.create(order_by=request.user, order_code=code)
@@ -61,8 +57,8 @@ class cartItem(GenericAPIView):
                 ord.save()
                 order.item.add(ord)
                 return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
-        except:
-            return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
+        # except:
+        #     return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
