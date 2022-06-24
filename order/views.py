@@ -51,8 +51,8 @@ class cartItem(GenericAPIView):
             else:
                 code = refercode()
                 order = orders.objects.create(order_by=request.user, order_code=code)
-                ord.item_color = color
-                ord.item_size = size
+                # ord.item_color = color
+                # ord.item_size = size
                 ord.quantity = int(quant)
                 ord.save()
                 order.item.add(ord)
