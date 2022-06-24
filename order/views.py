@@ -69,7 +69,7 @@ class cartItem(GenericAPIView):
     def get(self, request, *args, **kwargs):
         try:
             form = orders.objects.get(order_by__email=request.user, delivered=False, order_end=False)
-            serial = orderserial(form, many=False)
+            serial = orderserial(form, many=True)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'No item in wish list!'}, status=status.HTTP_400_BAD_REQUEST)
