@@ -36,7 +36,7 @@ class cartItem(GenericAPIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user)
+            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user, current_order=True)
             order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
             if order_qs.exists():
                 order = order_qs[0]
@@ -85,7 +85,7 @@ class remove_single_item_from_cart(APIView):
             )
             if order_qs.exists():
                 order = order_qs[0]
-                if order.item.filter(item=item, item_size=size, item_color=color).exists():
+                if order.item.filter(item=item, item_size=size, item_color=color, current_order=True).exists():
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
@@ -122,7 +122,7 @@ class remove_whole_item_from_cart(APIView):
             )
             if order_qs.exists():
                 order = order_qs[0]
-                if order.item.filter(item=item, item_size=size, item_color=color).exists():
+                if order.item.filter(item=item, item_size=size, item_color=color, current_order=True).exists():
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
@@ -273,6 +273,9 @@ class Checkout(APIView):
                 prd = products.objects.get(id=i.item_id)
                 prd.product_quantity -= i.quantity
                 prd.save()
+                it = items.objects.get(user=request.user, id=i.id, current_order=True)
+                it.current_order = False
+                it.save()
             order_qs.save()
             return Response({'message': 'Payment Done'}, status=status.HTTP_200_OK)
         except:

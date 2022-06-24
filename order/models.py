@@ -23,6 +23,7 @@ class items(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     item_size = models.CharField(max_length=150,null=True)
     item_color = models.CharField(max_length=150,null=True)
+    current_order = models.BooleanField(default=False)
     def __str__(self):
         return self.item.product_name
 
