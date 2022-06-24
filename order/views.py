@@ -269,10 +269,11 @@ class Checkout(APIView):
             order_qs = orders.objects.get(order_by=request.user, delivered=False, order_end=False)
             order_qs.order_end = True
             order_qs.order_date = date.today()
-            # for i in order_qs.item:
-
+            for i in order_qs.item.all():
+                prd = products.objects.get(id=i.item_id)
+                prd.product_quantity -= i.quantity
+                prd.save()
             order_qs.save()
-
             return Response({'message': 'Payment Done'}, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
