@@ -72,7 +72,7 @@ class cartItem(GenericAPIView):
             serial = orderserial(form, many=True)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
-            return Response({'message': 'No item in wish list!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response([], status=status.HTTP_200_OK)
 
 
 class remove_single_item_from_cart(APIView):
