@@ -68,11 +68,11 @@ class cartItem(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            form = orders.objects.get(order_by__email=request.user, delivered=False, order_end=False)
+            form = orders.objects.filter(order_by__email=request.user, delivered=False, order_end=False)
             serial = orderserial(form, many=True)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
-            return Response([], status=status.HTTP_200_OK)
+            return Response({'message': 'No item in wish list!'}, status=status.HTTP_200_OK)
 
 
 class remove_single_item_from_cart(APIView):
