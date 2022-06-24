@@ -30,7 +30,7 @@ class cartItem(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        # try:
+        try:
             ids = request.query_params.get('id')
             quant = request.query_params.get('quantity')
             size = request.query_params.get('size')
@@ -57,8 +57,8 @@ class cartItem(GenericAPIView):
                 ord.save()
                 order.item.add(ord)
                 return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
-        # except:
-        #     return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
