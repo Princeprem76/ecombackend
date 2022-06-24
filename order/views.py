@@ -72,7 +72,7 @@ class cartItem(GenericAPIView):
             serial = orderserial(form, many=False)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
-            return Response({'message': 'No item added to cart!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'No item added to cart!'}, status=status.HTTP_202_ACCEPTED)
 
 
 class remove_single_item_from_cart(APIView):
