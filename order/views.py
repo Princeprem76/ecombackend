@@ -89,10 +89,14 @@ class remove_single_item_from_cart(APIView):
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
-
+                        item_size=size, item_color=color,
+                        current_order=True
                     )[0]
+
+
                     if order_item.quantity > 1:
                         order_item.quantity -= 1
+
                         order_item.save()
                     else:
                         order.item.remove(order_item)
@@ -126,7 +130,7 @@ class remove_whole_item_from_cart(APIView):
                     order_item = items.objects.filter(
                         item=item,
                         user=request.user,
-
+                        current_order=True, item_size=size, item_color=color
                     )[0]
                     order.item.remove(order_item)
                     return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
