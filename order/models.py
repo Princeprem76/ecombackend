@@ -6,6 +6,8 @@ from user.models import UserEmail
 
 
 class location(models.Model):
+    user = models.ForeignKey(UserEmail, on_delete=models.CASCADE,
+                             null=True, )
     email = models.EmailField(null=True)
     name = models.CharField(max_length=150)
     phone = models.PositiveBigIntegerField()

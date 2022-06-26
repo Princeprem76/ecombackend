@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import items, orders, coupon, location, order_payment
-from order.serializers import orderserial, wishSerial
+from order.serializers import orderserial, wishSerial, locationSerial
 from product.models import products, wishlist, wishitem
 from user.models import UserEmail
 
@@ -236,11 +236,19 @@ class dropLocation(APIView):
             phone = data['phone']
             address = data['address']
             order_qs = orders.objects.get(order_by=request.user, delivered=False, order_end=False)
-            ord, created = location.objects.get_or_create(email=email, name=name, phone=int(phone),
+            ord, created = location.objects.get_or_create(user=request.user,email=email, name=name, phone=int(phone),
                                                           drop_location=address)
             order_qs.drop_location = ord
             order_qs.save()
             return Response({'message': 'Drop Location added'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            loca = location.objects.filter(user=request.user)
+            serial = locationSerial(loca, many=True)
+            return Response(serial.data, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from order.models import orders, items
+from order.models import orders, items, location
 from product.models import wishlist
 from product.serializers import allProductName
 
@@ -26,4 +26,10 @@ class wishSerial(serializers.ModelSerializer):
 
     class Meta:
         model = wishlist
+        fields = '__all__'
+
+
+class locationSerial(serializers.ModelSerializer):
+    class Meta:
+        model = location
         fields = '__all__'
