@@ -22,7 +22,7 @@ class items(models.Model):
                              null=True, )
     item = models.ForeignKey(products, on_delete=models.SET_NULL,
                              null=True, )
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=0)
     item_size = models.CharField(max_length=150, null=True)
     item_color = models.CharField(max_length=150, null=True)
     current_order = models.BooleanField(default=False)

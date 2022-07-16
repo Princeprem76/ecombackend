@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import items, orders, coupon, location, order_payment
-from order.serializers import orderserial, wishSerial, locationSerial
+from order.serializers import orderserial, wishSerial, locationSerial, itemSerial
 from product.models import products, wishlist, wishitem
 from user.models import UserEmail
 
@@ -26,7 +26,7 @@ def paymentcode():
     return ''.join(choices(string.ascii_lowercase + string.digits, k=10))
 
 
-class cartItem(GenericAPIView):
+class Items(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
@@ -36,35 +36,41 @@ class cartItem(GenericAPIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user, current_order=True)
-            order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
-            if order_qs.exists():
-                order = order_qs[0]
-                if order.item.filter(item=item, item_size=size, item_color=color).exists():
-                    ord.quantity += int(quant)
-                    ord.save()
-                else:
-                    ord.quantity = int(quant)
-                    ord.save()
-                    order.item.add(ord)
-                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
-            else:
-                code = refercode()
-                order = orders.objects.create(order_by=request.user, order_code=code)
-                ord.quantity = int(quant)
-                ord.save()
-                order.item.add(ord)
-                return Response({'message': "The item is added to cart"}, status=status.HTTP_202_ACCEPTED)
+            ord, created = items.objects.get_or_create(item=item, item_size=size, item_color=color, user=request.user,
+                                          current_order=True)
+            ord.quantity += int(quant)
+            ord.save()
+            return Response({'message': "Successfully added to cart"}, status=status.HTTP_201_CREATED)
         except:
-            return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': "Error"}, status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, *args, **kwargs):
         try:
-            form = orders.objects.filter(order_by__email=request.user, delivered=False, order_end=False)
-            serial = orderserial(form, many=True)
+            form = items.objects.filter(user=request.user, current_order=True)
+            serial = itemSerial(form, many=True)
             return Response(serial.data, status=status.HTTP_200_OK)
         except:
-            return Response({'message': 'No item in wish list!'}, status=status.HTTP_200_OK)
+            return Response({'message': 'No item in cart list!'}, status=status.HTTP_200_OK)
+
+
+class cartItem(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            itemlist = request.query_params.get('id')
+            order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
+            if order_qs.exists():
+                order_qs.delete()
+            code = refercode()
+            order, creates = orders.objects.get_or_create(order_by=request.user, order_code=code)
+            for ord in itemlist:
+                order.item.add(ord)
+            serial = orderserial(order, many=True)
+            return Response({'message': "The item is added to cart", 'Data': serial.data},
+                            status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response({'message': 'Parameters are missing'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class remove_single_item_from_cart(APIView):
@@ -76,34 +82,21 @@ class remove_single_item_from_cart(APIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            order_qs = orders.objects.filter(
-                order_by=request.user,
-                order_end=False,
-                delivered=False
-            )
-            if order_qs.exists():
-                order = order_qs[0]
-                if order.item.filter(item=item, item_size=size, item_color=color, current_order=True).exists():
-                    order_item = items.objects.filter(
-                        item=item,
-                        user=request.user,
-                        item_size=size, item_color=color,
-                        current_order=True
-                    )[0]
 
+            order_item = items.objects.filter(
+                item=item,
+                user=request.user,
+                item_size=size, item_color=color,
+                current_order=True
+            )[0]
 
-                    if order_item.quantity > 1:
-                        order_item.quantity -= 1
-
-                        order_item.save()
-                    else:
-                        order.item.remove(order_item)
-
-                    return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            if order_item.quantity > 1:
+                order_item.quantity -= 1
+                order_item.save()
             else:
-                return Response({'message': 'You do not have an active order'}, status=status.HTTP_204_NO_CONTENT)
+                order_item.delete()
+            return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
+
         except:
             return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -117,25 +110,16 @@ class remove_whole_item_from_cart(APIView):
             size = request.query_params.get('size')
             color = request.query_params.get('color')
             item = get_object_or_404(products, id=ids)
-            order_qs = orders.objects.filter(
-                order_by=request.user,
-                order_end=False,
-                delivered=False
-            )
-            if order_qs.exists():
-                order = order_qs[0]
-                if order.item.filter(item=item, item_size=size, item_color=color, current_order=True).exists():
-                    order_item = items.objects.filter(
-                        item=item,
-                        user=request.user,
-                        current_order=True, item_size=size, item_color=color
-                    )[0]
-                    order.item.remove(order_item)
-                    return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'message': 'No item found'}, status=status.HTTP_204_NO_CONTENT)
+            if items.objects.filter(item=item, item_size=size, item_color=color, current_order=True).exists():
+                order_item = items.objects.filter(
+                    item=item,
+                    user=request.user,
+                    current_order=True, item_size=size, item_color=color
+                )
+                order_item.delete()
+                return Response({'message': 'The cart is updated.'}, status=status.HTTP_200_OK)
             else:
-                return Response({'message': 'You do not have an active order'}, status=status.HTTP_204_NO_CONTENT)
+                return Response({'message': 'No item found'}, status=status.HTTP_204_NO_CONTENT)
         except:
             return Response({'message': 'Product not found!'}, status=status.HTTP_204_NO_CONTENT)
 
@@ -238,7 +222,7 @@ class dropLocation(APIView):
             phone = data['phone']
             address = data['address']
             order_qs = orders.objects.get(order_by=request.user, delivered=False, order_end=False)
-            ord, created = location.objects.get_or_create(user=request.user,email=email, name=name, phone=int(phone),
+            ord, created = location.objects.get_or_create(user=request.user, email=email, name=name, phone=int(phone),
                                                           drop_location=address)
             order_qs.drop_location = ord
             order_qs.save()

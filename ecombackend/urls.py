@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 
 from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use, \
-    remove_whole_item_from_cart, Checkout, dropLocation
+    remove_whole_item_from_cart, Checkout, dropLocation, Items
 from product.views import allProductView, categoryProductView, singleProductView, searchProduct, subcategoryProductView
 from user.views import Login_User, Create_User, forgetpw, activate, activatepw, logouts, details, changepass
 
@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/v1/userdetails/', details.as_view(), name="user details"),
     path('api/v1/changepassword/', changepass.as_view(), name="change password"),
     path('api/v1/forgetpassword/', forgetpw.as_view(), name="forget password"),
+    path('api/v1/items/', Items.as_view(), name="Items"),
     path('api/v1/cart/', cartItem.as_view(), name="Cart items"),
     path('api/v1/removeitem/', remove_single_item_from_cart.as_view(), name="remove item"),
     path('api/v1/wishitem/', wishItem.as_view(), name="wish item"),
