@@ -20,7 +20,7 @@ from django.urls import path
 
 from order.views import cartItem, remove_single_item_from_cart, wishItem, remove_single_item_from_wishlist, coupon_use, \
     remove_whole_item_from_cart, Checkout, dropLocation
-from product.views import allProductView, categoryProductView, singleProductView, searchProduct
+from product.views import allProductView, categoryProductView, singleProductView, searchProduct, subcategoryProductView
 from user.views import Login_User, Create_User, forgetpw, activate, activatepw, logouts, details, changepass
 
 urlpatterns = [
@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/v1/activatepw/<uidb64>/<token>/', activatepw, name='password reset'),
     path('api/v1/product/', allProductView.as_view(), name="all product"),
     path('api/v1/product/category/', categoryProductView.as_view(), name="category product"),
+    path('api/v1/product/subcategory/', subcategoryProductView.as_view(), name="sub category"),
     path('api/v1/logout/', logouts),
     path('api/v1/userdetails/', details.as_view(), name="user details"),
     path('api/v1/changepassword/', changepass.as_view(), name="change password"),

@@ -5,7 +5,7 @@ from user.models import UserEmail
 
 
 class subcategory(models.Model):
-    sub_category_name = models.CharField(max_length=120)
+    sub_category_name = models.CharField(max_length=150)
 
     def __str__(self):
         return self.sub_category_name
@@ -29,6 +29,7 @@ class productSize(models.Model):
     def __str__(self):
         return self.product_size
 
+
 class productColor(models.Model):
     color = [('Red', 'Red'), ('Blue', 'Blue'), ('Black', 'Black'), ('Grey', 'Grey'), ('White', 'White'),
              ('Yellow', 'Yellow')]
@@ -47,7 +48,8 @@ class products(models.Model):
     product_color = models.ManyToManyField(productColor)
     product_price = models.PositiveIntegerField()
     product_discount = models.PositiveIntegerField(default=0)
-    product_category = models.ForeignKey(category, on_delete=models.CASCADE)
+    product_category = models.ForeignKey(category, null=True, on_delete=models.SET_NULL)
+    sub_category = models.ForeignKey(subcategory, null=True, on_delete=models.SET_NULL)
     is_top_selling = models.BooleanField(default=False)
 
     def __str__(self):

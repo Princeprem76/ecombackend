@@ -23,9 +23,10 @@ class items(models.Model):
     item = models.ForeignKey(products, on_delete=models.SET_NULL,
                              null=True, )
     quantity = models.PositiveIntegerField(default=1)
-    item_size = models.CharField(max_length=150,null=True)
-    item_color = models.CharField(max_length=150,null=True)
+    item_size = models.CharField(max_length=150, null=True)
+    item_color = models.CharField(max_length=150, null=True)
     current_order = models.BooleanField(default=False)
+
     def __str__(self):
         return self.item.product_name
 
@@ -42,7 +43,8 @@ class orders(models.Model):
     order_end = models.BooleanField(default=False)
     delivered = models.BooleanField(default=False)
     drop_location = models.ForeignKey(location, on_delete=models.SET_NULL,
-                              null=True)
+                                      null=True)
+
     # def __str__(self):
     #     return self.order_by.email
 
