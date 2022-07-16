@@ -10,7 +10,7 @@ class itemSerial(serializers.ModelSerializer):
 
     class Meta:
         model = items
-        fields = '__all__'
+        fields = ['id', 'item', 'quantity', 'item_size', 'item_color', 'get_total']
 
 
 class orderserial(serializers.ModelSerializer):
@@ -18,7 +18,8 @@ class orderserial(serializers.ModelSerializer):
 
     class Meta:
         model = orders
-        fields = '__all__'
+        fields = ['id', 'order_code', 'order_by', 'item', 'order_date', 'order_end', 'delivered', 'drop_location',
+                  'get_total']
 
 
 class wishSerial(serializers.ModelSerializer):

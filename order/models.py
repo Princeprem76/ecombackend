@@ -31,7 +31,7 @@ class items(models.Model):
         return self.item.product_name
 
     def get_total(self):
-        return self.quantity * self.item.product_price
+        return self.quantity * self.item.get_discounted_price()
 
 
 class orders(models.Model):
