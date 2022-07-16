@@ -51,8 +51,9 @@ class subcategoryProductView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         try:
-            category = data['subcategory']
-            product_data = products.objects.filter(sub_category__sub_category_name=category)
+            subcategory = data['subcategory']
+            category = data['category']
+            product_data = products.objects.filter(sub_category__sub_category_name=subcategory,product_category__category_name=category)
             serializer = allProductName(product_data, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except:
