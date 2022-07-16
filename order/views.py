@@ -58,7 +58,7 @@ class cartItem(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            itemlist = request.query_params.get('id')
+            itemlist = request.query_params.getlist('ids')
             order_qs = orders.objects.filter(order_by=request.user, delivered=False, order_end=False)
             if order_qs.exists():
                 order_qs.delete()
@@ -66,7 +66,9 @@ class cartItem(GenericAPIView):
             order, creates = orders.objects.get_or_create(order_by=request.user, order_code=code)
             for ord in itemlist:
                 order.item.add(ord)
-            serial = orderserial(order, many=True)
+                order.save()
+
+            serial = orderserial(order, many=False)
             return Response({'message': "The item is added to cart", 'Data': serial.data},
                             status=status.HTTP_202_ACCEPTED)
         except:
