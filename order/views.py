@@ -48,7 +48,7 @@ class Items(GenericAPIView):
         try:
             form = items.objects.filter(user=request.user, current_order=True)
             serial = itemSerial(form, many=True)
-            return Response(serial.data, status=status.HTTP_200_OK)
+            return Response({'item':serial.data}, status=status.HTTP_200_OK)
         except:
             return Response({'message': 'No item in cart list!'}, status=status.HTTP_200_OK)
 
